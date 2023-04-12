@@ -1,27 +1,29 @@
+FROM nvidia/cuda:11.2.2-cudnn8-devel-ubuntu20.04
 
-FROM  python:3.6-stretch
-MAINTAINER Shaif <shaif_chowdhury1@baylor.edu>
+# Set the DEBIAN_FRONTEND environment variable to noninteractive
 
-# install build utilities
+# Set the DEBIAN_FRONTEND environment variable to noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install CUDA toolkit
 RUN apt-get update && \
-	apt-get install -y gcc make apt-transport-https ca-certificates build-essential
+    apt-get install -y --no-install-recommends \
+    cuda-toolkit-11-2 && \
+    rm -rf /var/lib/apt/lists/*
 
 
-# Installing python dependencies
+# Install Python and pip
+RUN apt-get update && apt-get install -y python3.8 python3.8-dev python3-pip
+
+# Install TensorFlow and Keras
+RUN pip3 install tensorflow==2.6.0 keras
+RUN pip3 install protobuf==3.20.0
+
 
 WORKDIR  /home/grad/chowdhury/Dockerfile/src
-
-# check our python environment
-
-RUN python3 --version
-RUN pip3 --version
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
 COPY src/ /src/
 RUN ls -la /src/
 
-RUN python3 /src/invclassification.py
 
-
+# Run the Python file that imports TensorFlow
+CMD ["python3", "/src/invclassification.py"]
